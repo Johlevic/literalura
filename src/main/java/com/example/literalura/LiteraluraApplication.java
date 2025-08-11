@@ -32,6 +32,11 @@ public class LiteraluraApplication implements CommandLineRunner {
 		this.gutendexClient = gutendexClient;
 	}
 
+	// 🔹 Método para normalizar título
+	private String tituloNormalizado(String titulo) {
+		return titulo != null ? titulo.trim() : "";
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(LiteraluraApplication.class, args);
 	}
@@ -122,6 +127,17 @@ public class LiteraluraApplication implements CommandLineRunner {
 									));
 						}
 
+						// 🔹 Validación: evitar guardar duplicados
+						boolean existe = libroRepository.existsByTituloIgnoreCaseAndAutor(
+								tituloNormalizado(b.getTitulo()),
+								autor
+						);
+
+						if (existe) {
+							System.out.println("⚠ El libro ya está guardado en la base de datos.");
+							break;
+						}
+
 						Libro libro = new Libro(
 								b.getTitulo() != null ? b.getTitulo() : "Sin título",
 								idioma,
@@ -136,6 +152,7 @@ public class LiteraluraApplication implements CommandLineRunner {
 						System.out.println("⚠ Error al buscar libro: " + e.getMessage());
 					}
 				}
+
 
 				case 2 -> {
 					List<Libro> libros = libroRepository.findAll();
